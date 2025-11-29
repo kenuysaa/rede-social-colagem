@@ -26,6 +26,8 @@
  * @returns {boolean}
  */
 export const validateUsername = (username) => {
-    // Regex: Apenas letras, números e underscore.
-    return username && username.length > 0 && username.length <= 12 && /^[a-zA-Z0-9_]+$/.test(username);
+    if (!username) return false;                // garante boolean
+    if (username.length === 0) return false;
+    if (username.length > 12) return false;
+    return /^[a-zA-Z0-9_]+$/.test(username);
 };
