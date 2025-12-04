@@ -1,5 +1,5 @@
 import React from 'react';
-import Profile from '../components/user/profile';
+import frofile from '../components/user/profile';
 
 const ProfilePage = () => {
   return (
