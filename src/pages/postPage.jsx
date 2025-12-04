@@ -1,5 +1,5 @@
 import React from 'react';
-import feed from '../components/post/feed';
+import Feed from '../components/post/feed';
 import CreatePost from '../components/post/createPost';
 
 const PostPage = () => {
