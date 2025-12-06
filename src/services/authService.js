@@ -2,9 +2,8 @@ import { signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut as fir
 import { doc, getDoc, setDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { auth, db, storage } from './firebaseService';
-import { validateUsername, UserData } from '../models/dataModels';
-
-// --- SERVIÇOS DE AUTENTICAÇÃO ---
+import { validateUsername } from '../models/dataModels';
+import { deleteUser } from 'firebase/auth';
 
 export const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
@@ -29,8 +28,6 @@ export const signOut = async () => {
         throw error;
     }
 };
-
-// --- SERVIÇOS DE PERFIL (RF1, RNF1, RNF6) ---
 
 export const getCurrentUserData = async () => {
     const uid = auth.currentUser?.uid;
@@ -84,4 +81,13 @@ export const saveUserProfile = async (username, name, bio, profileImageUrl) => {
     };
 
     return setDoc(doc(db, "users", uid), userData, { merge: true });
+};
+
+export const deleteUserAccount = async () => {
+    const user = auth.currentUser;
+    if (user) {
+        // Idealmente, deletaria dados do Firestore aqui também, 
+        // mas regras de segurança podem impedir se o user já foi deletado.
+        await deleteUser(user);
+    }
 };

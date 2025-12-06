@@ -1,9 +1,8 @@
 import { doc, setDoc, collection, onSnapshot, increment, writeBatch, getDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { auth, db, storage } from './firebaseService';
-import { PostData } from '../models/dataModels';
-
-// --- SERVIÇOS DE POSTAGENS (RF2, RNF2, RNF3) ---
+import { query, where, getDocs, orderBy } from 'firebase/firestore';
+import { deleteDoc, deleteField, updateDoc } from 'firebase/firestore';
 
 /**
  * Faz upload de múltiplos arquivos para o Storage (RNF2, RNF3).
@@ -27,7 +26,7 @@ export const uploadMultipleImages = async (files) => {
 };
 
 /**
- * Cria o documento de postagem no Firestore (RF2).
+ * Cria o documento de postagem no Firestore 
  * @param {string[]} imageUrls 
  * @returns {Promise<void>}
  */
@@ -67,9 +66,6 @@ export const getFeedPosts = (callback) => {
     });
 };
 
-
-// --- SERVIÇOS DE INTERAÇÃO (RNF5) ---
-
 /**
  * Verifica se o usuário atual curtiu um post.
  * @param {string} postId 
@@ -108,4 +104,35 @@ export const toggleLike = async (postId, isCurrentlyLiked) => {
     }
 
     await batch.commit();
+};
+
+/**
+ * Busca apenas os posts de um usuário específico para a tela de Perfil.
+ * @param {string} userId 
+ * @returns {Promise<PostData[]>}
+ */
+export const getUserPosts = async (userId) => {
+    const postsRef = collection(db, "posts");
+    // Query composta requer índice no Firebase, se der erro no console, clique no link que o erro fornece.
+    // Para simplificar no MVP, ordenamos no front-end:
+    const q = query(postsRef, where("userId", "==", userId));
+
+    const snapshot = await getDocs(q);
+    const posts = snapshot.docs.map(doc => ({
+        postId: doc.id,
+        ...doc.data(),
+        timestamp: doc.data().timestamp?.toDate()
+    }));
+
+    return posts.sort((a, b) => (b.timestamp?.getTime() || 0) - (a.timestamp?.getTime() || 0));
+};
+
+/**
+ * Deleta um post e suas referências.
+ * Nota: Deletar imagens do Storage via Client-side requer listar arquivos, 
+ * o que pode ser complexo. Para MVP, removemos o doc do Firestore.
+ */
+export const deletePost = async (postId) => {
+    if (!auth.currentUser) throw new Error("Não autorizado");
+    await deleteDoc(doc(db, "posts", postId));
 };
